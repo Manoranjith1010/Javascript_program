@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS Functions — Interactive Exercises</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f0e8;
+    --ink: #1a1612;
+    --card: #fff;
+    --muted: #8a7f72;
+    --border: #e0d8cc;
+    --green: #2d6a4f;
+    --green-light: #d8f3dc;
+    --red: #9b2226;
+    --red-light: #fde8e8;
+    --yellow: #b5451b;
+    --yellow-light: #fef3e2;
+    --accent: #c84b31;
+    --accent2: #2d6a4f;
+    --code-bg: #1e1b16;
+    --code-text: #e8dcc8;
+  }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Grain overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Header */
+  .header {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 32px 40px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: 'JS';
+    position: absolute;
+    right: -10px; top: -30px;
+    font-size: 160px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.04);
+    font-family: 'Syne', sans-serif;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+
+  .header h1 span { color: var(--accent); }
+
+  .header p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(245,240,232,0.5);
+    margin-top: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .progress-wrap {
+    text-align: right;
+  }
+
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(245,240,232,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .progress-bar {
+    width: 160px;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .score-badge {
+    display: inline-block;
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--bg);
+  }
+
+  /* Tab nav */
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    background: var(--ink);
+    padding: 0 40px;
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    padding: 12px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: rgba(245,240,232,0.4);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: -2px;
+  }
+
+  .tab-btn:hover { color: rgba(245,240,232,0.7); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-btn.done::after { content: ' ✓'; color: var(--green); }
+
+  /* Main content */
+  .content {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* Exercise card */
+  .exercise { display: none; }
+  .exercise.active { display: block; animation: slideIn 0.3s ease; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .exercise-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .exercise-num {
+    width: 36px; height: 36px;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .exercise-meta { flex: 1; }
+
+  .exercise-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .exercise-tag {
+    display: inline-block;
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .difficulty {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .instruction {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: #3a3028;
+  }
+
+  .instruction code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: var(--accent);
+  }
+
+  .hint-block {
+    background: var(--yellow-light);
+    border-left: 3px solid var(--yellow);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--yellow);
+    display: none;
+  }
+
+  .hint-block.show { display: block; animation: slideIn 0.2s ease; }
+
+  /* Code editor area */
+  .editor-wrap {
+    position: relative;
+    margin-bottom: 16px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #2e2a24;
+  }
+
+  .editor-header {
+    background: #2e2a24;
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .editor-filename {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(232,220,200,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .dot-row { display: flex; gap: 5px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  textarea {
+    width: 100%;
+    background: var(--code-bg);
+    color: var(--code-text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    padding: 20px;
+    border: none;
+    outline: none;
+    resize: vertical;
+    min-height: 140px;
+    tab-size: 2;
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-run {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .btn-run:hover { background: #3a3028; }
+  .btn-run:active { transform: scale(0.97); }
+
+  .btn-hint {
+    background: transparent;
+    color: var(--muted);
+    border-color: var(--border);
+  }
+
+  .btn-hint:hover { border-color: var(--muted); color: var(--ink); }
+
+  .btn-reset {
+    background: transparent;
+    color: var(--muted);
+    border-color: var(--border);
+  }
+
+  .btn-reset:hover { border-color: var(--red); color: var(--red); }
+
+  .btn-next {
+    background: var(--accent2);
+    color: white;
+    margin-left: auto;
+    display: none;
+  }
+
+  .btn-next.show { display: block; animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .btn-next:hover { background: #1b4332; }
+
+  @keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  /* Output */
+  .output {
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    border: 1px solid var(--border);
+    min-height: 54px;
+    background: var(--card);
+    color: var(--muted);
+    transition: all 0.3s;
+    white-space: pre-wrap;
+  }
+
+  .output.success {
+    background: var(--green-light);
+    border-color: #95d5b2;
+    color: var(--green);
+  }
+
+  .output.error {
+    background: var(--red-light);
+    border-color: #f5a5a5;
+    color: var(--red);
+  }
+
+  .output.running {
+    background: var(--yellow-light);
+    border-color: #f6c47f;
+    color: var(--yellow);
+  }
+
+  /* Concepts reference */
+  .reference {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .reference-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 12px;
+  }
+
+  .ref-code {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+
+  .c-keyword { color: #c792ea; }
+  .c-fn { color: #82aaff; }
+  .c-str { color: #c3e88d; }
+  .c-comment { color: #546e7a; font-style: italic; }
+  .c-num { color: #f78c6c; }
+
+  /* Completion screen */
+  .completion {
+    display: none;
+    text-align: center;
+    padding: 60px 24px;
+    animation: slideIn 0.4s ease;
+  }
+
+  .completion.show { display: block; }
+
+  .completion-emoji { font-size: 4rem; margin-bottom: 20px; }
+
+  .completion h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 10px;
+  }
+
+  .completion p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    max-width: 360px;
+    margin: 0 auto 28px;
+    line-height: 1.6;
+  }
+
+  .score-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+
+  .restart-btn {
+    padding: 12px 28px;
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .restart-btn:hover { background: #3a3028; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>Functions<br><span>Exercise Lab</span></h1>
+      <p>// javascript · beginner track</p>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label">Progress</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="score-badge"><span id="scoreText">0 / 4</span> completed</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-nav" id="tabNav">
+  <button class="tab-btn active" onclick="goTo(0)" id="tab0">01 · Declarations</button>
+  <button class="tab-btn" onclick="goTo(1)" id="tab1">02 · Arrow Fn</button>
+  <button class="tab-btn" onclick="goTo(2)" id="tab2">03 · Callbacks</button>
+  <button class="tab-btn" onclick="goTo(3)" id="tab3">04 · Closures</button>
+</div>
+
+<div class="content">
+
+  <!-- Exercise 1: Declarations -->
+  <div class="exercise active" id="ex0">
+    <div class="exercise-header">
+      <div class="exercise-num">1</div>
+      <div class="exercise-meta">
+        <div class="exercise-title">Write Your First Function</div>
+        <div class="exercise-tag">Declarations vs Expressions</div>
+      </div>
+      <div class="difficulty">⬜ Beginner</div>
+    </div>
+
+    <div class="instruction">
+      Write a function called <code>introduce</code> that takes a <code>name</code> and an <code>age</code> parameter, and returns the string:<br><br>
+      <strong>"Hi, I'm [name] and I am [age] years old."</strong><br><br>
+      Use a <strong>function declaration</strong> (the classic <code>function</code> keyword style). Then call it with your own name and age.
+      <div class="hint-block" id="hint0">
+        💡 Hint: return `Hi, I'm ${name} and I am ${age} years old.`
+      </div>
+    </div>
+
+    <div class="editor-wrap">
+      <div class="editor-header">
+        <div class="dot-row"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <div class="editor-filename">exercise-01.js</div>
+      </div>
+      <textarea id="code0" spellcheck="false">// Write your function declaration here
+function introduce(name, age) {
+  // your code here
+}
+
+// Call your function and store the result
+const result = introduce("Alice", 25);
+console.log(result);</textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-run" onclick="runExercise(0)">▶ Run Code</button>
+      <button class="btn btn-hint" onclick="toggleHint(0)">? Hint</button>
+      <button class="btn btn-reset" onclick="resetCode(0)">↺ Reset</button>
+      <button class="btn btn-next show" id="next0" onclick="goTo(1)" style="display:none">Next →</button>
+    </div>
+    <div class="output" id="output0">// Output will appear here...</div>
+
+    <div class="reference">
+      <div class="reference-title">// Reference</div>
+      <div class="ref-code"><span class="c-comment">// Function Declaration syntax</span>
+<span class="c-keyword">function</span> <span class="c-fn">greet</span>(name) {
+  <span class="c-keyword">return</span> <span class="c-str">`Hello, <span class="c-keyword">${</span>name<span class="c-keyword">}</span>!`</span>;
+}
+
+<span class="c-comment">// Template literals use backticks ` `</span>
+<span class="c-comment">// and ${variable} to embed values</span></div>
+    </div>
+  </div>
+
+  <!-- Exercise 2: Arrow Functions -->
+  <div class="exercise" id="ex1">
+    <div class="exercise-header">
+      <div class="exercise-num">2</div>
+      <div class="exercise-meta">
+        <div class="exercise-title">Convert to Arrow Functions</div>
+        <div class="exercise-tag">Arrow Functions</div>
+      </div>
+      <div class="difficulty">⬜ Beginner</div>
+    </div>
+
+    <div class="instruction">
+      Below are two regular functions. Convert them both into <strong>arrow functions</strong> stored in <code>const</code> variables.<br><br>
+      • <code>square(n)</code> → returns <code>n * n</code><br>
+      • <code>isEven(n)</code> → returns <code>true</code> if n is even, <code>false</code> otherwise
+      <div class="hint-block" id="hint1">
+        💡 Hint: const square = n => n * n; &nbsp;|&nbsp; const isEven = n => n % 2 === 0;
+      </div>
+    </div>
+
+    <div class="editor-wrap">
+      <div class="editor-header">
+        <div class="dot-row"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <div class="editor-filename">exercise-02.js</div>
+      </div>
+      <textarea id="code1" spellcheck="false">// Convert these to arrow functions:
+
+// Original: function square(n) { return n * n; }
+const square = // your code here
+
+// Original: function isEven(n) { return n % 2 === 0; }
+const isEven = // your code here
+
+// Test them:
+console.log(square(5));     // should print 25
+console.log(isEven(4));     // should print true
+console.log(isEven(7));     // should print false</textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-run" onclick="runExercise(1)">▶ Run Code</button>
+      <button class="btn btn-hint" onclick="toggleHint(1)">? Hint</button>
+      <button class="btn btn-reset" onclick="resetCode(1)">↺ Reset</button>
+      <button class="btn btn-next" id="next1" onclick="goTo(2)" style="display:none">Next →</button>
+    </div>
+    <div class="output" id="output1">// Output will appear here...</div>
+
+    <div class="reference">
+      <div class="reference-title">// Reference</div>
+      <div class="ref-code"><span class="c-comment">// Arrow function — one-liner (implicit return)</span>
+<span class="c-keyword">const</span> <span class="c-fn">double</span> = n => n * <span class="c-num">2</span>;
+
+<span class="c-comment">// Arrow function — multi-line (explicit return)</span>
+<span class="c-keyword">const</span> <span class="c-fn">add</span> = (a, b) => {
+  <span class="c-keyword">return</span> a + b;
+};</div>
+    </div>
+  </div>
+
+  <!-- Exercise 3: Callbacks -->
+  <div class="exercise" id="ex2">
+    <div class="exercise-header">
+      <div class="exercise-num">3</div>
+      <div class="exercise-meta">
+        <div class="exercise-title">Use Array Callbacks</div>
+        <div class="exercise-tag">Callbacks & Higher-Order Functions</div>
+      </div>
+      <div class="difficulty">⬜⬜ Intermediate</div>
+    </div>
+
+    <div class="instruction">
+      You have an array of numbers. Use <strong>array methods with callbacks</strong> to:<br><br>
+      1. <code>doubled</code> — every number multiplied by 2 (use <code>.map()</code>)<br>
+      2. <code>evens</code> — only the even numbers (use <code>.filter()</code>)<br>
+      3. <code>total</code> — the sum of all numbers (use <code>.reduce()</code>)
+      <div class="hint-block" id="hint2">
+        💡 Hint: .reduce((sum, n) => sum + n, 0) — the 0 is the starting value
+      </div>
+    </div>
+
+    <div class="editor-wrap">
+      <div class="editor-header">
+        <div class="dot-row"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <div class="editor-filename">exercise-03.js</div>
+      </div>
+      <textarea id="code2" spellcheck="false">const numbers = [1, 2, 3, 4, 5, 6, 7, 8];
+
+// 1. Double every number using .map()
+const doubled = numbers.map(/* your code */);
+
+// 2. Keep only even numbers using .filter()
+const evens = numbers.filter(/* your code */);
+
+// 3. Sum all numbers using .reduce()
+const total = numbers.reduce(/* your code */);
+
+console.log("Doubled:", doubled);  // [2,4,6,8,10,12,14,16]
+console.log("Evens:", evens);      // [2,4,6,8]
+console.log("Total:", total);      // 36</textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-run" onclick="runExercise(2)">▶ Run Code</button>
+      <button class="btn btn-hint" onclick="toggleHint(2)">? Hint</button>
+      <button class="btn btn-reset" onclick="resetCode(2)">↺ Reset</button>
+      <button class="btn btn-next" id="next2" onclick="goTo(3)" style="display:none">Next →</button>
+    </div>
+    <div class="output" id="output2">// Output will appear here...</div>
+
+    <div class="reference">
+      <div class="reference-title">// Reference</div>
+      <div class="ref-code"><span class="c-keyword">const</span> nums = [<span class="c-num">1</span>, <span class="c-num">2</span>, <span class="c-num">3</span>];
+
+nums.<span class="c-fn">map</span>(n => n * <span class="c-num">2</span>);           <span class="c-comment">// [2, 4, 6]</span>
+nums.<span class="c-fn">filter</span>(n => n > <span class="c-num">1</span>);        <span class="c-comment">// [2, 3]</span>
+nums.<span class="c-fn">reduce</span>((sum, n) => sum + n, <span class="c-num">0</span>); <span class="c-comment">// 6</span></div>
+    </div>
+  </div>
+
+  <!-- Exercise 4: Closures -->
+  <div class="exercise" id="ex3">
+    <div class="exercise-header">
+      <div class="exercise-num">4</div>
+      <div class="exercise-meta">
+        <div class="exercise-title">Build a Closure</div>
+        <div class="exercise-tag">Closures & Scope</div>
+      </div>
+      <div class="difficulty">⬜⬜⬜ Challenge</div>
+    </div>
+
+    <div class="instruction">
+      Create a function called <code>makeMultiplier</code> that takes a number <code>factor</code> and <strong>returns a new function</strong>. The returned function should take a number <code>n</code> and return <code>n * factor</code>.<br><br>
+      Then use it to create <code>triple</code> (factor 3) and <code>half</code> (factor 0.5).
+      <div class="hint-block" id="hint3">
+        💡 Hint: function makeMultiplier(factor) { return n => n * factor; }
+      </div>
+    </div>
+
+    <div class="editor-wrap">
+      <div class="editor-header">
+        <div class="dot-row"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <div class="editor-filename">exercise-04.js</div>
+      </div>
+      <textarea id="code3" spellcheck="false">// Write makeMultiplier here — it returns a function!
+function makeMultiplier(factor) {
+  // your code here
+}
+
+// Create specialized functions using makeMultiplier
+const triple = makeMultiplier(3);
+const half = makeMultiplier(0.5);
+
+// Test them:
+console.log(triple(10));   // should print 30
+console.log(triple(7));    // should print 21
+console.log(half(20));     // should print 10
+console.log(half(5));      // should print 2.5</textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-run" onclick="runExercise(3)">▶ Run Code</button>
+      <button class="btn btn-hint" onclick="toggleHint(3)">? Hint</button>
+      <button class="btn btn-reset" onclick="resetCode(3)">↺ Reset</button>
+      <button class="btn btn-next" id="next3" onclick="showCompletion()" style="display:none">Finish 🎉</button>
+    </div>
+    <div class="output" id="output3">// Output will appear here...</div>
+
+    <div class="reference">
+      <div class="reference-title">// Reference</div>
+      <div class="ref-code"><span class="c-comment">// A closure: inner fn remembers outer variable</span>
+<span class="c-keyword">function</span> <span class="c-fn">makeCounter</span>() {
+  <span class="c-keyword">let</span> count = <span class="c-num">0</span>;
+  <span class="c-keyword">return</span> () => ++count;  <span class="c-comment">// remembers `count`</span>
+}
+<span class="c-keyword">const</span> counter = <span class="c-fn">makeCounter</span>();
+<span class="c-fn">counter</span>(); <span class="c-comment">// 1</span>
+<span class="c-fn">counter</span>(); <span class="c-comment">// 2</span></div>
+    </div>
+  </div>
+
+  <!-- Completion -->
+  <div class="completion" id="completion">
+    <div class="completion-emoji">🎉</div>
+    <h2>You did it!</h2>
+    <div class="score-display" id="finalScore">4 / 4</div>
+    <p>You've practiced all four core function concepts in JavaScript. You're building real skills!</p>
+    <button class="restart-btn" onclick="restart()">↺ Try Again</button>
+  </div>
+
+</div>
+
+<script>
+const defaults = [
+`// Write your function declaration here
+function introduce(name, age) {
+  // your code here
+}
+
+// Call your function and store the result
+const result = introduce("Alice", 25);
+console.log(result);`,
+
+`// Convert these to arrow functions:
+
+// Original: function square(n) { return n * n; }
+const square = // your code here
+
+// Original: function isEven(n) { return n % 2 === 0; }
+const isEven = // your code here
+
+// Test them:
+console.log(square(5));     // should print 25
+console.log(isEven(4));     // should print true
+console.log(isEven(7));     // should print false`,
+
+`const numbers = [1, 2, 3, 4, 5, 6, 7, 8];
+
+// 1. Double every number using .map()
+const doubled = numbers.map(/* your code */);
+
+// 2. Keep only even numbers using .filter()
+const evens = numbers.filter(/* your code */);
+
+// 3. Sum all numbers using .reduce()
+const total = numbers.reduce(/* your code */);
+
+console.log("Doubled:", doubled);  // [2,4,6,8,10,12,14,16]
+console.log("Evens:", evens);      // [2,4,6,8]
+console.log("Total:", total);      // 36`,
+
+`// Write makeMultiplier here — it returns a function!
+function makeMultiplier(factor) {
+  // your code here
+}
+
+// Create specialized functions using makeMultiplier
+const triple = makeMultiplier(3);
+const half = makeMultiplier(0.5);
+
+// Test them:
+console.log(triple(10));   // should print 30
+console.log(triple(7));    // should print 21
+console.log(half(20));     // should print 10
+console.log(half(5));      // should print 2.5`
+];
+
+// Validation checks per exercise
+const validators = [
+  // Ex 1: introduce function
+  (logs) => {
+    const joined = logs.join('\n');
+    return joined.includes("Hi, I'm") && joined.includes("years old");
+  },
+  // Ex 2: arrow functions
+  (logs) => {
+    const joined = logs.join('\n');
+    return joined.includes('25') && joined.includes('true') && joined.includes('false');
+  },
+  // Ex 3: array methods
+  (logs) => {
+    const joined = logs.join('\n');
+    return joined.includes('2,4,6,8,10,12,14,16') &&
+           joined.includes('2,4,6,8') &&
+           joined.includes('36');
+  },
+  // Ex 4: closure
+  (logs) => {
+    const joined = logs.join('\n');
+    return joined.includes('30') && joined.includes('21') &&
+           joined.includes('10') && joined.includes('2.5');
+  },
+];
+
+const completed = [false, false, false, false];
+let current = 0;
+
+function runExercise(idx) {
+  const code = document.getElementById(`code${idx}`).value;
+  const outputEl = document.getElementById(`output${idx}`);
+  const logs = [];
+
+  outputEl.className = 'output running';
+  outputEl.textContent = '⟳ Running...';
+
+  setTimeout(() => {
+    try {
+      const originalLog = console.log;
+      console.log = (...args) => {
+        logs.push(args.map(a => {
+          if (Array.isArray(a)) return JSON.stringify(a).replace(/,/g, ', ');
+          return String(a);
+        }).join(' '));
+      };
+
+      // eslint-disable-next-line no-new-func
+      new Function(code)();
+      console.log = originalLog;
+
+      if (logs.length === 0) {
+        outputEl.className = 'output error';
+        outputEl.textContent = '⚠ No output — did you call console.log()?';
+        return;
+      }
+
+      const passed = validators[idx](logs);
+      outputEl.className = passed ? 'output success' : 'output error';
+
+      if (passed) {
+        outputEl.textContent = '✓ Correct!\n\n' + logs.join('\n');
+        if (!completed[idx]) {
+          completed[idx] = true;
+          updateProgress();
+        }
+        document.getElementById(`next${idx}`).style.display = 'block';
+        document.getElementById(`next${idx}`).className = 'btn btn-next show';
+        document.getElementById(`tab${idx}`).classList.add('done');
+      } else {
+        outputEl.textContent = '✗ Not quite. Output:\n\n' + logs.join('\n') + '\n\nCheck the expected values in the comments.';
+      }
+
+    } catch (err) {
+      console.log = console.log;
+      outputEl.className = 'output error';
+      outputEl.textContent = `✗ Error: ${err.message}`;
+    }
+  }, 300);
+}
+
+function toggleHint(idx) {
+  const el = document.getElementById(`hint${idx}`);
+  el.classList.toggle('show');
+}
+
+function resetCode(idx) {
+  document.getElementById(`code${idx}`).value = defaults[idx];
+  document.getElementById(`output${idx}`).className = 'output';
+  document.getElementById(`output${idx}`).textContent = '// Output will appear here...';
+}
+
+function goTo(idx) {
+  document.getElementById(`ex${current}`).classList.remove('active');
+  document.getElementById(`tab${current}`).classList.remove('active');
+  current = idx;
+  document.getElementById(`ex${idx}`).classList.add('active');
+  document.getElementById(`tab${idx}`).classList.add('active');
+  document.getElementById('completion').classList.remove('show');
+}
+
+function updateProgress() {
+  const done = completed.filter(Boolean).length;
+  document.getElementById('progressFill').style.width = `${(done / 4) * 100}%`;
+  document.getElementById('scoreText').textContent = `${done} / 4`;
+}
+
+function showCompletion() {
+  document.getElementById(`ex${current}`).classList.remove('active');
+  document.getElementById(`tab${current}`).classList.remove('active');
+  const done = completed.filter(Boolean).length;
+  document.getElementById('finalScore').textContent = `${done} / 4`;
+  document.getElementById('completion').classList.add('show');
+}
+
+function restart() {
+  completed.fill(false);
+  updateProgress();
+  for (let i = 0; i < 4; i++) {
+    resetCode(i);
+    document.getElementById(`tab${i}`).classList.remove('done', 'active');
+    document.getElementById(`next${i}`).style.display = 'none';
+    document.getElementById(`hint${i}`).classList.remove('show');
+  }
+  document.getElementById('completion').classList.remove('show');
+  current = 0;
+  document.getElementById('ex0').classList.add('active');
+  document.getElementById('tab0').classList.add('active');
+}
+
+// Tab key support in textareas
+document.querySelectorAll('textarea').forEach(ta => {
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const s = ta.selectionStart, end = ta.selectionEnd;
+      ta.value = ta.value.substring(0, s) + '  ' + ta.value.substring(end);
+      ta.selectionStart = ta.selectionEnd = s + 2;
+    }
+  });
+});
+</script>
+</body>
+</html>
