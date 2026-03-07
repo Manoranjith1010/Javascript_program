@@ -1,8 +1,16 @@
-// d is hoisted but uninitialized (TDZ)
-console.log(d)   // ❌ Error: cannot access before initialization
-let d = 10;      // initialization happens here
+// var is hoisted and initialized as undefined.
+console.log(d);
+var d = 10;
 
-
-var d;        // hoisted
-console.log(d);  // d exists but is undefined
-d = 10;       // assignment happens here
+function create2DArray(rows, cols, fillValue = 0) {
+    const arr = [];
+    for (let i = 0; i < rows; i++) {
+        arr[i] = []; // Create an empty inner array (row)
+        for (let j = 0; j < cols; j++) {
+            arr[i][j] = fillValue; // Fill the columns
+        }
+    }
+    return arr;
+}
+const dynamicMatrix = create2DArray(3, 4, 1); // Creates a 3x4 matrix filled with 0s
+console.log(dynamicMatrix);
