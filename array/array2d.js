@@ -1,52 +1,62 @@
-const readline = require('readline');
+console.log("Matrix Multiplication already correct")
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
-let input = [];
-
-rl.on('line', (line) => {
-  input.push(line);
-});
-
-rl.on('close', () => {
-  let t = Number(input.shift());
-
-  while (t-- > 0) {
-    let n = Number(input.shift());
-
-    let matrix1 = [];
-    let matrix2 = [];
-
-    for (let i = 0; i < n; i++) {
-      matrix1.push(input.shift().trim().split(' ').map(Number));
-    }
-    for (let i = 0; i < n; i++) {
-      matrix2.push(input.shift().trim().split(' ').map(Number));
-    }
-
-    const result = printMultiplication(matrix1, matrix2, n);
-
-    // 🔥 PRINT THE RESULT (this was missing)
-    for (let i = 0; i < n; i++) {
-      console.log(result[i].join(" "));
-    }
+function DiagonalSumPrimaryDiagonal(arr) {
+  let sum = 0;
+  for (let i = 0; i < arr.length; i++) {
+    sum += arr[i][i];
   }
-});
+  return sum;
+}
 
-function printMultiplication(matrix1, matrix2, n) {
+let arr1 = [
+  [1, 2, 3],
+  [4, 5, 6],
+  [7, 8, 9]
+];
 
-  const result = Array.from({ length: n }, () => Array(n).fill(0));
+console.log(DiagonalSumPrimaryDiagonal(arr1)); // 15
 
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < n; j++) {
-      for (let k = 0; k < n; k++) {
-        result[i][j] += matrix1[i][k] * matrix2[k][j];
+
+console.log("Count Even Numbers")
+function CountEvenNumbers(arr) {
+  let count = 0;
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = 0; j < arr[i].length; j++) {
+      if (arr[i][j] % 2 === 0) {
+        count++;
       }
     }
   }
+  return count;
+}
 
+console.log(CountEvenNumbers(arr1)); // 4
+
+
+console.log("ranspose")
+let arr2 = [[1, 2, 3], [4, 5, 6]];
+
+function transpose(matrix) {
+  let result = [];
+  
+  for (let i = 0; i < matrix[0].length; i++) {
+    let newRow = [];
+    for (let j = 0; j < matrix.length; j++) {
+      newRow.push(matrix[j][i]);
+    }
+    result.push(newRow);
+  }
   return result;
 }
+
+console.log(transpose(arr2)); // [ [1, 4], [2, 5], [3, 6] ]
+
+console.log("Reverse Each Row")
+function ReverseEachRow(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    arr[i].reverse(); // built-in reverse
+  }
+  return arr;
+}
+
+console.log(ReverseEachRow(arr1));
